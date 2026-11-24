@@ -12,6 +12,18 @@
       "channel": "stable",
       "minecraft": ["1.21.11"],
       "changelog": { "Removed": ["CAPER Update Button on TitleScreen"] }
+    },
+    {
+      "version": "3.1.6",
+      "title": "Sharper logo and layout fix",
+      "date": "2026-11-24",
+      "url": "https://github.com/KIngSas1/caper-releases/releases/download/v3.1.6/caper-3.1.6.jar",
+      "sha256": "741010265f30c574339ad59a07ff98bcaef218b67410d8b8f04c4a81df7f2d68",
+      "size": 2809249,
+      "mandatory": false,
+      "channel": "stable",
+      "minecraft": ["1.21.11"],
+      "changelog": { "Fixed": ["Update screen logo is now sharp", "Module counter no longer overlaps the progress bar"] }
     }
   ]
 }
