@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAPER release publisher</title>
+<style>
+:root{--bg:#eceee9;--card:#f8f9f6;--ink:#17201b;--mute:#5d6a62;--line:#cfd6cc;--acc:#0b6b4f;--acc-ink:#fff;--bad:#a4261d;--beta:#8a5a00}
+@media (prefers-color-scheme:dark){:root{--bg:#121714;--card:#1b231e;--ink:#e7ede8;--mute:#93a198;--line:#2e3a32;--acc:#4cc59a;--acc-ink:#07130d;--bad:#ff8a80;--beta:#e8b04a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.5rem;margin:8px 0 2px;letter-spacing:-.01em}
+h2{font-size:1.05rem;margin:0 0 12px}
+.sub{color:var(--mute);margin:0 0 18px}
+section,details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+summary{cursor:pointer;font-weight:600}
+label{display:block;font-size:.85rem;color:var(--mute);margin:12px 0 4px}
+input[type=text],input[type=password],select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:130px;font-family:Consolas,monospace;font-size:.9rem}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.check{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:.95rem;margin-top:14px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:26px 12px;text-align:center;color:var(--mute);cursor:pointer}
+.drop.over,.drop:hover{border-color:var(--acc);color:var(--ink)}
+.drop b{color:var(--ink)}
+button{font:inherit;padding:9px 16px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.main{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.facts{font-size:.85rem;color:var(--mute);margin-top:10px;word-break:break-all}
+progress{width:100%;height:8px;margin-top:12px;accent-color:var(--acc)}
+#log{margin:12px 0 0;padding:0;list-style:none;font-size:.88rem}
+#log li{padding:2px 0}
+#log .ok::before{content:"✓ ";color:var(--acc)}
+#log .err{color:var(--bad)}
+#log .err::before{content:"✗ "}
+.rel{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)}
+.rel:first-of-type{border-top:0}
+.rel small{color:var(--mute);display:block}
+.tag{font-size:.75rem;border:1px solid currentColor;border-radius:99px;padding:0 7px;margin-left:6px}
+.tag.beta{color:var(--beta)}.tag.mand{color:var(--bad)}
+.rel .btns{display:flex;gap:6px;flex-shrink:0}
+.rel button{padding:5px 10px;font-size:.85rem}
+.empty{color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<h1>CAPER release publisher</h1>
+<p class="sub">Drop a jar, write the notes, publish. Checksum, size, GitHub release and update.json are handled for you.</p>
+
+<details id="settings">
+<summary>Connection</summary>
+<label for="repo">Releases repo</label>
+<input type="text" id="repo" value="KIngSas1/caper-releases" autocomplete="off">
+<div class="row">
+<div><label for="branch">Branch</label><input type="text" id="branch" value="main"></div>
+<div><label for="mc">Default Minecraft version(s)</label><input type="text" id="mc" value="1.21.11"></div>
+</div>
+<label for="token">GitHub token (fine-grained, Contents: read and write on this repo only)</label>
+<input type="password" id="token" autocomplete="off" placeholder="github_pat_…">
+<div class="actions"><button class="main" id="save">Save and load releases</button></div>
+<p class="facts">The token is stored only in this browser. Use this page from your own computer or your own GitHub Pages site.</p>
+</details>
+
+<section>
+<h2 id="formTitle">New release</h2>
+<div class="drop" id="drop"><span id="dropText"><b>Choose a jar</b> or drop it here</span></div>
+<input type="file" id="file" accept=".jar" hidden>
+<div class="facts" id="facts"></div>
+<div class="row">
+<div><label for="version">Version</label><input type="text" id="version" placeholder="3.1.8"></div>
+<div><label for="title">Title (optional)</label><input type="text" id="title"></div>
+</div>
+<label for="notes">Changelog</label>
+<textarea id="notes" placeholder="## Added&#10;- New thing&#10;## Fixed&#10;- Old bug"></textarea>
+<div class="row">
+<div><label for="channel">Channel</label><select id="channel"><option value="stable">Stable</option><option value="beta">Beta</option></select></div>
+<div><label for="mcv">Minecraft version(s), comma separated</label><input type="text" id="mcv"></div>
+</div>
+<label class="check"><input type="checkbox" id="mandatory"> Mandatory (players can’t skip this version)</label>
+<progress id="bar" max="1" value="0" hidden></progress>
+<ul id="log"></ul>
+<div class="actions">
+<button class="main" id="publish">Publish</button>
+<button id="cancelEdit" hidden>Cancel edit</button>
+</div>
+</section>
+
+<section>
+<h2>Published releases</h2>
+<div id="list"><p class="empty">Save your connection to load releases.</p></div>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let hiddenCache = [], file = null, fileInfo = null, manifestCache = null, editing = null;
+
+// ---------- settings
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+for (const k of ['repo','branch','mc','token']) { const v = store('caper_'+k); if (v) $(k).value = v; }
+$('mcv').value = $('mc').value;
+const cfg = () => ({ repo:$('repo').value.trim(), branch:$('branch').value.trim()||'main', token:$('token').value.trim() });
+
+// ---------- github
+async function gh(path, opts = {}) {
+  const { token } = cfg();
+  const res = await fetch('https://api.github.com' + path, { ...opts, headers: {
+    Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(data.message || ('HTTP ' + res.status)); e.status = res.status; throw e; }
+  return data;
+}
+const b64 = s => { const b = new TextEncoder().encode(s); let t=''; for (let i=0;i<b.length;i+=8192) t += String.fromCharCode(...b.subarray(i,i+8192)); return btoa(t); };
+const unb64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')), c => c.charCodeAt(0)));
+
+async function getManifest(name = 'update.json') {
+  const { repo, branch } = cfg();
+  try {
+    const f = await gh(`/repos/${repo}/contents/${name}?ref=${encodeURIComponent(branch)}&t=${Date.now()}`);
+    return { sha: f.sha, data: JSON.parse(unb64(f.content)) };
+  } catch (e) { if (e.status === 404) return { sha: null, data: { schema: 1, releases: [] } }; throw e; }
+}
+async function putManifest(m, msg, name = 'update.json') {
+  const { repo, branch } = cfg();
+  const body = { message: msg, content: b64(JSON.stringify(m.data, null, 2) + '\n'), branch };
+  if (m.sha) body.sha = m.sha;
+  await gh(`/repos/${repo}/contents/${name}`, { method: 'PUT', body: JSON.stringify(body) });
+}
+
+// ---------- jar helpers
+async function sha256(f) {
+  const h = new Uint8Array(await crypto.subtle.digest('SHA-256', await f.arrayBuffer()));
+  return [...h].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function jarVersion(f) { // reads "version" from fabric.mod.json inside the jar
+  try {
+    const tail = new DataView(await f.slice(Math.max(0, f.size - 66000)).arrayBuffer());
+    let e = tail.byteLength - 22; while (e >= 0 && tail.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) return null;
+    const n = tail.getUint16(e + 10, true), size = tail.getUint32(e + 12, true), off = tail.getUint32(e + 16, true);
+    const cd = new DataView(await f.slice(off, off + size).arrayBuffer());
+    let p = 0;
+    for (let i = 0; i < n; i++) {
+      const method = cd.getUint16(p + 10, true), csize = cd.getUint32(p + 20, true);
+      const nl = cd.getUint16(p + 28, true), xl = cd.getUint16(p + 30, true), cl = cd.getUint16(p + 32, true), lo = cd.getUint32(p + 42, true);
+      const name = new TextDecoder().decode(new Uint8Array(cd.buffer, p + 46, nl));
+      if (name === 'fabric.mod.json') {
+        const lh = new DataView(await f.slice(lo, lo + 30).arrayBuffer());
+        const start = lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+        let raw = f.slice(start, start + csize);
+        if (method === 8) raw = new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw')));
+        else raw = new Response(raw);
+        const v = JSON.parse(await raw.text()).version;
+        return v && !String(v).includes('${') ? String(v) : null;
+      }
+      p += 46 + nl + xl + cl;
+    }
+  } catch (e) { /* fall back to the file name */ }
+  return null;
+}
+const mb = n => (n / 1048576).toFixed(2) + ' MB';
+
+async function pickFile(f) {
+  if (!f || !/\.jar$/i.test(f.name)) return say('Pick a .jar file.', 'err');
+  file = f; fileInfo = null;
+  $('dropText').innerHTML = '<b>' + f.name + '</b> (' + mb(f.size) + ')';
+  $('facts').textContent = 'Reading jar…';
+  const v = (await jarVersion(f)) || (f.name.match(/caper-(.+)\.jar$/i) || [])[1] || '';
+  if (!editing || !$('version').value) $('version').value = v;
+  fileInfo = { sha: await sha256(f), size: f.size };
+  $('facts').textContent = 'SHA-256 ' + fileInfo.sha + ' · ' + f.size.toLocaleString() + ' bytes';
+}
+$('drop').onclick = () => $('file').click();
+$('file').onchange = e => pickFile(e.target.files[0]);
+$('drop').ondragover = e => { e.preventDefault(); $('drop').classList.add('over'); };
+$('drop').ondragleave = () => $('drop').classList.remove('over');
+$('drop').ondrop = e => { e.preventDefault(); $('drop').classList.remove('over'); pickFile(e.dataTransfer.files[0]); };
+
+// ---------- notes <-> object
+function parseNotes(t) {
+  const out = {}; let sec = null;
+  for (const raw of t.split('\n')) {
+    const l = raw.trim();
+    if (l.startsWith('## ')) { sec = l.slice(3).trim(); out[sec] = []; }
+    else if (/^[-*] /.test(l)) { if (!sec) { sec = 'Changes'; out[sec] = []; } out[sec].push(l.slice(2).trim()); }
+  }
+  return out;
+}
+const notesText = o => Object.entries(o || {}).map(([k, v]) => '## ' + k + '\n' + v.map(x => '- ' + x).join('\n')).join('\n');
+
+// ---------- log
+function say(msg, cls = 'ok') { const li = document.createElement('li'); li.className = cls; li.textContent = msg; $('log').appendChild(li); }
+function upload(url, f, onProgress) {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest(); x.open('POST', url);
+    x.setRequestHeader('Authorization', 'Bearer ' + cfg().token);
+    x.setRequestHeader('Accept', 'application/vnd.github+json');
+    x.setRequestHeader('Content-Type', 'application/java-archive');
+    x.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded / e.total);
+    x.onload = () => x.status < 300 ? resolve() : reject(new Error('Upload failed: ' + (JSON.parse(x.responseText || '{}').message || x.status)));
+    x.onerror = () => reject(new Error('Upload failed (network)'));
+    x.send(f);
+  });
+}
+
+// ---------- publish
+$('publish').onclick = async () => {
+  const c = cfg(), ver = $('version').value.trim().replace(/^v/, '');
+  $('log').innerHTML = '';
+  if (!c.token || !c.repo) return say('Fill in the connection first.', 'err');
+  if (!ver) return say('Enter a version.', 'err');
+  if (!file && !editing) return say('Choose a jar first.', 'err');
+  if (file && !fileInfo) return say('Still reading the jar, try again in a second.', 'err');
+  $('publish').disabled = true;
+  try {
+    const m = await getManifest();
+    const old = m.data.releases.find(r => r.version === (editing || ver));
+    const taken = ver !== editing && (m.data.releases.some(r => r.version === ver) || hiddenCache.some(r => r.version === ver));
+    if (taken && !confirm('Version ' + ver + ' already exists. Overwriting replaces its jar, and players who already downloaded it keep the old file. Overwrite anyway?')) throw new Error('Cancelled, nothing was changed.');
+    const channel = $('channel').value, tag = 'v' + ver;
+    let url = old ? old.url : '', sha = old ? old.sha256 : '', size = old ? old.size : 0, date = old ? old.date : new Date().toISOString().slice(0, 10);
+    if (file) {
+      let rel;
+      try { rel = await gh(`/repos/${c.repo}/releases/tags/${tag}`); for (const a of rel.assets) await gh(`/repos/${c.repo}/releases/assets/${a.id}`, { method: 'DELETE' }); }
+      catch (e) { if (e.status !== 404) throw e; rel = await gh(`/repos/${c.repo}/releases`, { method: 'POST', body: JSON.stringify({ tag_name: tag, target_commitish: c.branch, name: 'CAPER ' + ver, body: $('title').value || 'CAPER ' + ver, prerelease: channel !== 'stable' }) }); }
+      say('GitHub release ' + tag + ' ready');
+      const name = 'caper-' + ver + '.jar';
+      $('bar').hidden = false; $('bar').value = 0;
+      await upload(rel.upload_url.replace(/\{.*$/, '') + '?name=' + name, file, p => $('bar').value = p);
+      $('bar').hidden = true;
+      say('Jar uploaded (' + mb(file.size) + ')');
+      url = `https://github.com/${c.repo}/releases/download/${tag}/${name}`; sha = fileInfo.sha; size = fileInfo.size; date = new Date().toISOString().slice(0, 10);
+    }
+    const entry = { version: ver, title: $('title').value.trim(), date, url, sha256: sha, size, mandatory: $('mandatory').checked, channel,
+      minecraft: $('mcv').value.split(',').map(s => s.trim()).filter(Boolean), changelog: parseNotes($('notes').value) };
+    const fresh = await getManifest(); // re-read right before writing, manifest goes last
+    fresh.data.releases = fresh.data.releases.filter(r => r.version !== (editing || ver)).concat(entry);
+    await putManifest(fresh, (editing ? 'Edit ' : 'Release ') + ver);
+    if (hiddenCache.some(r => r.version === ver)) { const h = await getManifest('hidden.json'); h.data.releases = h.data.releases.filter(r => r.version !== ver); await putManifest(h, 'Unhide ' + ver, 'hidden.json'); }
+    say((editing ? 'Saved ' : 'Published ') + ver + ' — players will see it on their next check');
+    resetForm(false); await load();
+  } catch (e) { $('bar').hidden = true; say(e.message, 'err'); }
+  $('publish').disabled = false;
+};
+
+function resetForm(clearLog = true) {
+  file = fileInfo = editing = null;
+  for (const id of ['version','title','notes','facts']) { $(id).value = ''; }
+  $('facts').textContent = ''; $('mandatory').checked = false; $('channel').value = 'stable'; $('mcv').value = $('mc').value;
+  $('dropText').innerHTML = '<b>Choose a jar</b> or drop it here'; $('file').value = '';
+  $('formTitle').textContent = 'New release'; $('publish').textContent = 'Publish'; $('cancelEdit').hidden = true;
+  if (clearLog) $('log').innerHTML = '';
+}
+$('cancelEdit').onclick = () => resetForm();
+
+// ---------- list / edit / delete
+const vnum = v => v.split(/[.\-]/).map(x => parseInt(x) || 0);
+const cmp = (a, b) => { const x = vnum(a), y = vnum(b); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (y[i] || 0) - (x[i] || 0); if (d) return d; } return 0; };
+
+async function load() {
+  const c = cfg();
+  if (!c.token || !c.repo) return;
+  $('list').innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    manifestCache = (await getManifest()).data;
+    hiddenCache = (await getManifest('hidden.json')).data.releases;
+    const counts = {};
+    try { for (const g of await gh(`/repos/${c.repo}/releases?per_page=100`)) counts[g.tag_name] = g.assets.reduce((n, a) => n + a.download_count, 0); } catch (e) { /* counts are optional */ }
+    const rs = [...manifestCache.releases].sort((a, b) => cmp(a.version, b.version));
+    $('list').innerHTML = rs.length ? '' : '<p class="empty">Nothing published yet. Upload your first jar above.</p>';
+    const row = (r, hidden) => {
+      const d = document.createElement('div'); d.className = 'rel';
+      const t = document.createElement('div');
+      const b = document.createElement('b'); b.textContent = r.version; t.appendChild(b);
+      if (r.channel !== 'stable') t.insertAdjacentHTML('beforeend', '<span class="tag beta">beta</span>');
+      if (r.mandatory) t.insertAdjacentHTML('beforeend', '<span class="tag mand">mandatory</span>');
+      const s = document.createElement('small'); s.textContent = [r.title, r.date, mb(r.size), (counts['v' + r.version] ?? '?') + ' downloads'].filter(Boolean).join(' · '); t.appendChild(s);
+      const bt = document.createElement('div'); bt.className = 'btns';
+      const ed = document.createElement('button'); ed.textContent = hidden ? 'Show' : 'Edit'; ed.onclick = () => hidden ? toggleHidden(r, false) : edit(r);
+      const hi = document.createElement('button'); hi.textContent = 'Hide'; hi.onclick = () => toggleHidden(r, true);
+      const del = document.createElement('button'); del.textContent = 'Delete'; del.className = 'danger'; del.onclick = () => remove(r, hidden);
+      bt.append(ed, ...(hidden ? [] : [hi]), del); d.append(t, bt); return d;
+    };
+    for (const r of rs) $('list').appendChild(row(r, false));
+    if (hiddenCache.length) {
+      const h = document.createElement('p'); h.className = 'empty'; h.style.marginTop = '18px';
+      h.textContent = 'Hidden (not offered to players, jar still on GitHub)'; $('list').appendChild(h);
+      for (const r of [...hiddenCache].sort((a, b) => cmp(a.version, b.version))) $('list').appendChild(row(r, true));
+    }
+  } catch (e) { $('list').innerHTML = ''; const p = document.createElement('p'); p.className = 'empty'; p.textContent = e.message; $('list').appendChild(p); }
+}
+function edit(r) {
+  resetForm(); editing = r.version;
+  $('version').value = r.version; $('title').value = r.title || ''; $('notes').value = notesText(r.changelog);
+  $('channel').value = r.channel === 'stable' ? 'stable' : 'beta'; $('mandatory').checked = !!r.mandatory; $('mcv').value = (r.minecraft || []).join(', ');
+  $('formTitle').textContent = 'Edit ' + r.version + ' (choose a jar only to replace the file)';
+  $('publish').textContent = 'Save changes'; $('cancelEdit').hidden = false;
+  scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function toggleHidden(r, hide) {
+  const [from, to] = hide ? ['update.json', 'hidden.json'] : ['hidden.json', 'update.json'];
+  $('log').innerHTML = '';
+  try {
+    const dst = await getManifest(to);
+    dst.data.releases = dst.data.releases.filter(x => x.version !== r.version).concat(r);
+    await putManifest(dst, (hide ? 'Hide ' : 'Show ') + r.version, to); // saved before removal, so the entry is never lost
+    const src = await getManifest(from);
+    src.data.releases = src.data.releases.filter(x => x.version !== r.version);
+    await putManifest(src, (hide ? 'Hide ' : 'Show ') + r.version, from);
+    say((hide ? 'Hidden ' : 'Visible again: ') + r.version);
+  } catch (e) { say(e.message, 'err'); }
+  load();
+}
+async function remove(r, hidden) {
+  if (!confirm('Delete ' + r.version + '? It is removed from update.json and its GitHub release, jar and tag are deleted.')) return;
+  const c = cfg(); $('log').innerHTML = '';
+  try {
+    const file = hidden ? 'hidden.json' : 'update.json';
+    const m = await getManifest(file);
+    m.data.releases = m.data.releases.filter(x => x.version !== r.version);
+    await putManifest(m, 'Remove ' + r.version, file); // manifest first, so nobody is pointed at a missing file
+    try { const rel = await gh(`/repos/${c.repo}/releases/tags/v${r.version}`); await gh(`/repos/${c.repo}/releases/${rel.id}`, { method: 'DELETE' }); } catch (e) { if (e.status !== 404) throw e; }
+    try { await gh(`/repos/${c.repo}/git/refs/tags/v${r.version}`, { method: 'DELETE' }); } catch (e) { /* tag already gone */ }
+    say('Deleted ' + r.version);
+  } catch (e) { say(e.message, 'err'); }
+  load();
+}
+
+$('save').onclick = () => { for (const k of ['repo','branch','mc','token']) store('caper_' + k, $(k).value.trim()); $('mcv').value ||= $('mc').value; $('settings').open = false; load(); };
+if (!cfg().token) $('settings').open = true; else load();
+</script>
+</body>
+</html>
