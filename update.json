@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "releases": [
+    {
+      "version": "3.1.5",
+      "title": "Update 3.1.5",
+      "date": "2026-11-24",
+      "url": "https://github.com/KIngSas1/caper-releases/releases/download/v3.1.5/caper-3.1.5.jar",
+      "sha256": "7d157175a96a67ba1e6848f9829ddb84d11a27e861ca1128bc0240e4e3eb0443",
+      "size": 2760944,
+      "mandatory": false,
+      "channel": "stable",
+      "minecraft": ["1.21.11"],
+      "changelog": { "Removed": ["CAPER Update Button on TitleScreen"] }
+    }
+  ]
+}
