@@ -24,6 +24,36 @@
       "channel": "stable",
       "minecraft": ["1.21.11"],
       "changelog": { "Fixed": ["Update screen logo is now sharp", "Module counter no longer overlaps the progress bar"] }
+    },
+    {
+      "version": "3.1.7",
+      "title": "Glass theme, smarter Pearl Guard and Update Center in Frames",
+      "date": "2026-11-24",
+      "url": "https://github.com/KIngSas1/caper-releases/releases/download/v3.1.7/caper-3.1.7.jar",
+      "sha256": "ea4bce3cfd64d63c651955ee2046514dd7d36ba2741c3ecf141c2355f36bc532",
+      "size": 2812913,
+      "mandatory": false,
+      "channel": "stable",
+      "minecraft": ["1.21.11"],
+      "changelog": {
+        "Added": [
+          "Glass theme: frosted see-through look with real background blur, also styles the HUD",
+          "Update Center button in the Frames GUI"
+        ],
+        "Improved": [
+          "Pearl Guard now scans 360 degrees and reacts to enemies dropping from straight above (pearl catch)",
+          "Pearl Guard is marked Experimental in the Frames GUI",
+          "HUD elements are hidden while the client GUI is open",
+          "Update, Continue and other buttons are readable on every accent color"
+        ],
+        "Fixed": [
+          "Pearl Guard missed mace dives right after an enemy teleported above you"
+        ],
+        "Removed": [
+          "Update backups: the config/caper/backups folder is deleted on update",
+          "CAPER no longer shows in Mod Menu"
+        ]
+      }
     }
   ]
 }
