@@ -87,6 +87,24 @@
           "Added Public Profiles"
         ]
       }
+    },
+    {
+      "version": "3.1.9",
+      "title": "Fixed Public Profiles",
+      "date": "2026-11-25",
+      "url": "https://raw.githubusercontent.com/KIngSas1/caper-releases/main/jars/caper-3.1.9.jar",
+      "sha256": "27ca20f5f8f42de790b8ad689756e9532da319e604fa7e363132e9dfa63a9384",
+      "size": 2831924,
+      "mandatory": true,
+      "channel": "stable",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {
+        "Fixed": [
+          "Fixed Entry Error from Public Profiles"
+        ]
+      }
     }
   ]
 }
