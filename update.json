@@ -105,6 +105,20 @@
           "Fixed Entry Error from Public Profiles"
         ]
       }
+    },
+    {
+      "version": "3.2.0",
+      "title": "",
+      "date": "2026-11-25",
+      "url": "https://raw.githubusercontent.com/KIngSas1/caper-releases/main/jars/caper-3.2.0-fdd520ccced9.jar",
+      "sha256": "fdd520ccced9c5db0077da1ef295297fabd0ecec1ced4df6f97da4fbeaa9cac5",
+      "size": 2872917,
+      "mandatory": true,
+      "channel": "stable",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {}
     }
   ]
 }
