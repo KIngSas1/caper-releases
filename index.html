@@ -205,9 +205,25 @@ function upload(url, f, onProgress) {
     x.setRequestHeader('Content-Type', 'application/java-archive');
     x.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded / e.total);
     x.onload = () => x.status < 300 ? resolve() : reject(new Error('Upload failed: ' + (JSON.parse(x.responseText || '{}').message || x.status)));
-    x.onerror = () => reject(new Error('Upload failed (network)'));
+    x.onerror = () => reject(new Error('Upload failed (network/CORS)'));
     x.send(f);
   });
+}
+
+// fallback: api.github.com allows browser calls, uploads.github.com often doesn't
+async function commitJar(c, name, f) {
+  const path = 'jars/' + name;
+  let sha;
+  try { sha = (await gh(`/repos/${c.repo}/contents/${path}?ref=${encodeURIComponent(c.branch)}`)).sha; }
+  catch (e) { if (e.status !== 404) throw e; }
+  const content = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = () => rej(new Error('Could not read the jar'));
+    r.readAsDataURL(f);
+  });
+  await gh(`/repos/${c.repo}/contents/${path}`, { method: 'PUT', body: JSON.stringify({ message: 'Jar ' + name, content, branch: c.branch, ...(sha ? { sha } : {}) }) });
+  return `https://raw.githubusercontent.com/${c.repo}/${c.branch}/${path}`;
 }
 
 // ---------- publish
@@ -233,10 +249,19 @@ $('publish').onclick = async () => {
       say('GitHub release ' + tag + ' ready');
       const name = 'caper-' + ver + '.jar';
       $('bar').hidden = false; $('bar').value = 0;
-      await upload(rel.upload_url.replace(/\{.*$/, '') + '?name=' + name, file, p => $('bar').value = p);
+      try {
+        await upload(rel.upload_url.replace(/\{.*$/, '') + '?name=' + name, file, p => $('bar').value = p);
+        url = `https://github.com/${c.repo}/releases/download/${tag}/${name}`;
+        say('Jar uploaded to the release (' + mb(file.size) + ')');
+      } catch (e) {
+        if (!/network/i.test(e.message)) throw e;
+        say('Browser blocked the release upload (CORS), committing the jar to the repo instead…');
+        $('bar').removeAttribute('value');
+        url = await commitJar(c, name, file);
+        say('Jar committed to ' + c.branch + ' (' + mb(file.size) + ')');
+      }
       $('bar').hidden = true;
-      say('Jar uploaded (' + mb(file.size) + ')');
-      url = `https://github.com/${c.repo}/releases/download/${tag}/${name}`; sha = fileInfo.sha; size = fileInfo.size; date = new Date().toISOString().slice(0, 10);
+      sha = fileInfo.sha; size = fileInfo.size; date = new Date().toISOString().slice(0, 10);
     }
     const entry = { version: ver, title: $('title').value.trim(), date, url, sha256: sha, size, mandatory: $('mandatory').checked, channel,
       minecraft: $('mcv').value.split(',').map(s => s.trim()).filter(Boolean), changelog: parseNotes($('notes').value) };
