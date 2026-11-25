@@ -69,6 +69,24 @@
           "CAPER no longer shows in Mod Menu"
         ]
       }
+    },
+    {
+      "version": "3.1.8",
+      "title": "Public Profiles Is Here",
+      "date": "2026-11-25",
+      "url": "https://raw.githubusercontent.com/KIngSas1/caper-releases/main/jars/caper-3.1.8.jar",
+      "sha256": "d166a84de55cff7140c59cf75455439a44cb49b580b0241de8ccb4873eadcdbd",
+      "size": 2831161,
+      "mandatory": true,
+      "channel": "stable",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {
+        "Added": [
+          "Added Public Profiles"
+        ]
+      }
     }
   ]
 }
