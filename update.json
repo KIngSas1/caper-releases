@@ -10,8 +10,14 @@
       "size": 2760944,
       "mandatory": false,
       "channel": "stable",
-      "minecraft": ["1.21.11"],
-      "changelog": { "Removed": ["CAPER Update Button on TitleScreen"] }
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {
+        "Removed": [
+          "CAPER Update Button on TitleScreen"
+        ]
+      }
     },
     {
       "version": "3.1.6",
@@ -22,8 +28,15 @@
       "size": 2809249,
       "mandatory": false,
       "channel": "stable",
-      "minecraft": ["1.21.11"],
-      "changelog": { "Fixed": ["Update screen logo is now sharp", "Module counter no longer overlaps the progress bar"] }
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {
+        "Fixed": [
+          "Update screen logo is now sharp",
+          "Module counter no longer overlaps the progress bar"
+        ]
+      }
     },
     {
       "version": "3.1.7",
@@ -34,7 +47,9 @@
       "size": 2812913,
       "mandatory": false,
       "channel": "stable",
-      "minecraft": ["1.21.11"],
+      "minecraft": [
+        "1.21.11"
+      ],
       "changelog": {
         "Added": [
           "Glass theme: frosted see-through look with real background blur, also styles the HUD",
@@ -54,6 +69,20 @@
           "CAPER no longer shows in Mod Menu"
         ]
       }
+    },
+    {
+      "version": "3.1.8",
+      "title": "",
+      "date": "2026-11-25",
+      "url": "https://raw.githubusercontent.com/KIngSas1/caper-releases/main/jars/caper-3.1.8.jar",
+      "sha256": "d166a84de55cff7140c59cf75455439a44cb49b580b0241de8ccb4873eadcdbd",
+      "size": 2831161,
+      "mandatory": true,
+      "channel": "stable",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "changelog": {}
     }
   ]
 }
